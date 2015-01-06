@@ -57,6 +57,10 @@
       = yield
 
     = javascript_include_tag "releaf/application"
+    - if Rails.env.test?
+      :javascript
+        jQuery.fx.off = true;
+
     - if Releaf::AssetsResolver.javascript_exists? controller_asset
       = javascript_include_tag "releaf/controllers/#{controller_asset}"
     - %w[js js.erb].each do |ext|
