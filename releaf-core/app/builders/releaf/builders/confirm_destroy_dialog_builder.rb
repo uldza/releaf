@@ -1,14 +1,14 @@
 class Releaf::Builders::ConfirmDestroyDialogBuilder < Releaf::Builders::ConfirmDialogBuilder
   def question_content
-    t('Do you want to delete the following object?', scope: 'admin.global')
+    t("Do you want to delete the following object?")
   end
 
   def description_content
-    resource_to_text(resource)
+    resource_title(resource)
   end
 
   def section_header_text
-    t('Confirm deletion', scope: 'admin.global')
+    t("Confirm deletion")
   end
 
   def confirm_method
@@ -20,6 +20,6 @@ class Releaf::Builders::ConfirmDestroyDialogBuilder < Releaf::Builders::ConfirmD
   end
 
   def confirm_url
-    url_for( action: 'destroy', id: resource.id, index_url: index_url)
+    url_for( action: 'destroy', id: resource.id, index_path: index_path)
   end
 end

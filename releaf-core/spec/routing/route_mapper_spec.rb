@@ -1,24 +1,24 @@
-require "spec_helper"
+require "rails_helper"
 
-describe Releaf::Core::RouteMapper do
+describe Releaf::RouteMapper do
   after(:all) do
     # reset dummy app routes
     Dummy::Application.reload_routes!
   end
 
   describe "#mount_releaf_at" do
-    it "it assigns normalized mount location to Releaf.mount_location" do
+    it "it assigns normalized mount location to Releaf.application.config.mount_location" do
       expect{
         routes.draw do
           mount_releaf_at '/xxxx'
         end
-      }.to change{ Releaf.mount_location }.to("xxxx")
+      }.to change{ Releaf.application.config.mount_location }.to("xxxx")
 
       expect{
         routes.draw do
           mount_releaf_at '/'
         end
-      }.to change{ Releaf.mount_location }.to("")
+      }.to change{ Releaf.application.config.mount_location }.to("")
     end
   end
 
@@ -111,7 +111,7 @@ describe Releaf::Core::RouteMapper do
 
       it "route to page not found" do
         expect(get: "/admin/books/1/toolbox")
-          .to route_to(controller: "releaf/core/errors", action: "page_not_found", path: "books/1/toolbox")
+          .to route_to(controller: "releaf/root", action: "page_not_found", path: "books/1/toolbox")
       end
     end
 
@@ -126,7 +126,7 @@ describe Releaf::Core::RouteMapper do
 
       it "route to page not found" do
         expect(get: "/admin/books/1/toolbox")
-          .to route_to(controller: "releaf/core/errors", action: "page_not_found", path: "books/1/toolbox")
+          .to route_to(controller: "releaf/root", action: "page_not_found", path: "books/1/toolbox")
       end
     end
 
@@ -141,7 +141,7 @@ describe Releaf::Core::RouteMapper do
 
       it "does not mount destroy confirm route" do
         expect(get: "/admin/books/1/confirm_destroy")
-          .to route_to(controller: "releaf/core/errors", action: "page_not_found", path: "books/1/confirm_destroy")
+          .to route_to(controller: "releaf/root", action: "page_not_found", path: "books/1/confirm_destroy")
       end
     end
 
@@ -156,7 +156,7 @@ describe Releaf::Core::RouteMapper do
 
       it "does not mount destroy confirm route" do
         expect(get: "/admin/books/1/confirm_destroy")
-          .to route_to(controller: "releaf/core/errors", action: "page_not_found", path: "books/1/confirm_destroy")
+          .to route_to(controller: "releaf/root", action: "page_not_found", path: "books/1/confirm_destroy")
       end
     end
 

@@ -1,9 +1,9 @@
-require 'spec_helper'
+require 'rails_helper'
 feature "Base controller index", js: true do
   background do
     auth_as_user
     author = FactoryGirl.create(:author)
-    good_book = FactoryGirl.create(:book, title: "good book", author: author)
+    good_book = FactoryGirl.create(:book, title: "good book", author: author, published_at: Date.parse("2015-12-12"))
     FactoryGirl.create(:chapter, title: 'Scary night', text: 'Once upon a time...', book: good_book)
     FactoryGirl.create(:book, title: "bad book", author: author)
   end
@@ -16,6 +16,17 @@ feature "Base controller index", js: true do
   scenario "search resources dynamically" do
     visit admin_books_path
     search "good"
+    expect(page).to have_number_of_resources(1)
+
+    check "Only active"
+    expect(page).to have_number_of_resources(0)
+
+    uncheck "Only active"
+    expect(page).to have_number_of_resources(1)
+
+    fill_in "Published between", with: "2015-11-11"
+    click_button "Filter"
+
     expect(page).to have_number_of_resources(1)
   end
 
@@ -43,13 +54,14 @@ feature "Base controller index", js: true do
   scenario "keeps search parameters when navigating to edit and back" do
     visit admin_books_path(search: "good")
     click_link("good book")
+    wait_for_all_richtexts
     click_link("Back to list")
     expect(page).to have_number_of_resources(1)
   end
 
   scenario "keeps search parameters after delete" do
     visit admin_books_path(search: "good")
-    open_toolbox('Delete', Book.first)
+    open_toolbox_dialog('Delete', Book.first)
     click_button("Yes")
     expect(page).to have_number_of_resources(0)
   end
@@ -57,14 +69,14 @@ feature "Base controller index", js: true do
   scenario "when deleting item in edit" do
     visit admin_books_path(search: "good")
     click_link("good book")
-    open_toolbox('Delete')
+    open_toolbox_dialog('Delete')
     click_button("Yes")
     expect(page).to have_number_of_resources(0)
   end
 
   scenario "when deleting item with restrict relation" do
     visit admin_authors_path
-    open_toolbox('Delete', Author.first)
+    open_toolbox_dialog('Delete', Author.first)
 
     within_dialog do
       expect(page).to have_css('.restricted-relations .relations li', count: 2)

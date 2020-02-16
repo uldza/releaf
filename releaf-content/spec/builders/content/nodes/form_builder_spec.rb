@@ -1,4 +1,4 @@
-require "spec_helper"
+require "rails_helper"
 
 describe Releaf::Content::Nodes::FormBuilder, type: :class do
   class FormBuilderTestHelper < ActionView::Base
@@ -31,7 +31,7 @@ describe Releaf::Content::Nodes::FormBuilder, type: :class do
     it "renders node fields" do
       allow(subject).to receive(:node_fields).and_return([1, 2])
       allow(subject).to receive(:releaf_fields).with([1, 2]).and_return("x")
-      content = '<div class="section node-fields clear-inside">x</div>'
+      content = '<div class="section node-fields">x</div>'
       expect(subject.render_node_fields_block).to eq(content)
     end
   end
@@ -159,17 +159,76 @@ describe Releaf::Content::Nodes::FormBuilder, type: :class do
     end
   end
 
+  describe "#slug_base_url" do
+    before do
+      request = double(:request, protocol: "http:://", host_with_port: "somehost:8080")
+      allow(subject).to receive(:request).and_return(request)
+      allow(object).to receive(:parent).and_return(Node.new)
+    end
+
+    context "when trailing slash for path enabled" do
+      it "returns absolute url without extra slash added" do
+        allow(object).to receive(:trailing_slash_for_path?).and_return(true)
+        allow(object.parent).to receive(:path).and_return("/parent/path/")
+        expect(subject.slug_base_url).to eq("http:://somehost:8080/parent/path/")
+      end
+    end
+
+    context "when trailing slash for path disabled" do
+      it "returns absolute url with extra slash added" do
+        allow(object).to receive(:trailing_slash_for_path?).and_return(false)
+        allow(object.parent).to receive(:path).and_return("/parent/path")
+        expect(subject.slug_base_url).to eq("http:://somehost:8080/parent/path/")
+      end
+    end
+  end
+
+  describe "#slug_link" do
+    before do
+      allow(subject).to receive(:slug_base_url).and_return("http://some.host/parent/path/")
+    end
+
+    context "when trailing slash for path enabled" do
+      it "returns absolute url without extra slash added" do
+        allow(object).to receive(:trailing_slash_for_path?).and_return(true)
+        expect(subject.slug_link).to eq('<a href="/a/b/">http://some.host/parent/path/<span>b</span>/</a>')
+      end
+    end
+
+    context "when trailing slash for path disabled" do
+      it "returns absolute url with extra slash added" do
+        allow(object).to receive(:trailing_slash_for_path?).and_return(false)
+        expect(subject.slug_link).to eq('<a href="/a/b">http://some.host/parent/path/<span>b</span></a>')
+      end
+    end
+  end
+
   describe "#render_slug" do
     it "renders customized field" do
-      controller = Releaf::BaseController.new
+      controller = Admin::NodesController.new
       allow(subject).to receive(:controller).and_return(controller)
       allow(subject).to receive(:slug_base_url).and_return("http://localhost/parent")
-      allow(subject).to receive(:url_for).with(controller: "/releaf/content/nodes", action: "generate_url", parent_id: 1, id: 2)
+      allow(subject).to receive(:url_for).with(controller: "admin/nodes", action: "generate_url", parent_id: 1, id: 2)
         .and_return("http://localhost/slug-generation-url")
 
-      content = '<div class="field type-text" data-name="slug"><div class="label-wrap"><label for="resource_slug">Slug</label></div><div class="value"><input value="b" data-generator-url="http://localhost/slug-generation-url" type="text" name="resource[slug]" id="resource_slug" /><button class="button only-icon secondary generate" title="Suggest slug" type="button"><i class="fa fa-keyboard-o"></i></button><div class="link"><a href="/a/b">http://localhost/parent<span>b</span>/</a></div></div></div>'
+      content = '
+          <div class="field type-text" data-name="slug">
+              <div class="label-wrap">
+                  <label for="resource_slug">Slug</label>
+              </div>
+              <div class="value">
+                  <input value="b" class="text" data-generator-url="http://localhost/slug-generation-url" type="text" name="resource[slug]" id="resource_slug" />
+                  <button class="button only-icon secondary generate" title="Suggest slug" type="button" autocomplete="off">
+                      <i class="fa fa-keyboard-o"></i>
+                  </button>
+                  <div class="link">
+                      <a href="/a/b">http://localhost/parent<span>b</span></a>
+                  </div>
+             </div>
+         </div>
+      '
 
-      expect(subject.render_slug).to eq(content)
+      expect(subject.render_slug).to match_html(content)
     end
   end
 

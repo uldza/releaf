@@ -1,4 +1,14 @@
 source "http://rubygems.org"
+require 'yaml'
+
+config_file = File.expand_path('../config.yml', __FILE__)
+unless File.exist?(config_file)
+  puts "config.yml is missing"
+  puts "see CONTRIBUTING.md"
+  exit(1)
+end
+
+config = YAML.load_file(config_file)
 
 # Declare your gem's dependencies in releaf.gemspec.
 # Bundler will treat runtime dependencies like base dependencies, and
@@ -14,19 +24,16 @@ gemspec
 
 # To use debugger
 # gem 'debugger'
-
-case ENV.fetch('RELEAF_DB', 'mysql')
+case config["database"]["type"]
 when 'mysql'
-  gem 'mysql2', platform: :ruby
-  gem 'jdbc-mysql', platform: :jruby
-  gem 'activerecord-jdbc-adapter', platform: :jruby
+  gem 'mysql2', '< 0.5', platform: :ruby
 when 'postgresql'
-  gem 'pg'
+  gem 'pg', '~> 0.15'
 end
 
 group :documentation do
   gem 'yard'
-  gem 'github-markdown', '>= 0.5.3'
-  gem 'redcarpet', '>= 2.2.2'
+  gem 'github-markdown', '>= 0.5.3', platforms: :ruby
+  gem 'redcarpet', '>= 2.2.2', platforms: :ruby
   gem 'yard-activerecord', '~> 0.0.14'
 end

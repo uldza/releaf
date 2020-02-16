@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'rails_helper'
 feature "Richtext attachments", js: true do
   background do
     # preload ActsAsNode classes
@@ -7,7 +7,7 @@ feature "Richtext attachments", js: true do
   end
 
   scenario "Upload image and insert it within text" do
-    visit new_releaf_content_node_path(content_type: 'HomePage')
+    visit new_admin_node_path(content_type: 'HomePage')
     fill_in("Name", with: "Image test")
     select('en', from: 'Locale')
 
@@ -35,14 +35,14 @@ feature "Richtext attachments", js: true do
   end
 
   scenario "Upload file and insert url to it" do
-    visit new_releaf_content_node_path(content_type: 'HomePage')
+    visit new_admin_node_path(content_type: 'HomePage')
     fill_in("Name", with: "Link test")
     select('en', from: 'Locale')
 
     status_script = 'CKEDITOR.instances["resource_content_attributes_intro_text_html"].status=="ready"'
     expect { page.evaluate_script(status_script) }.to become_true
 
-    find(".cke_toolbox a[title='Link']").click
+    find(".cke_toolbox a.cke_button__link").click
     expect(page).to have_css(".cke_dialog_title", text: "Link")
     click_link "Upload"
 

@@ -25,6 +25,12 @@ module Releaf::Content
       slices
     end
 
+    def section_attributes
+      attributes = super
+      attributes['data-columns'] = content_types_slices.length
+      attributes
+    end
+
     def section_body
       tag(:div, class: "body") do
         [section_body_description, content_types_list]
@@ -32,7 +38,7 @@ module Releaf::Content
     end
 
     def content_types_list
-      tag(:div, class: "content-types clear-inside") do
+      tag(:div, class: "content-types") do
         content_types_slices.collect do |slice|
           content_type_slice(slice)
         end
@@ -40,7 +46,7 @@ module Releaf::Content
     end
 
     def content_type_slice(slice)
-      tag(:ul, class: "block") do
+      tag(:ul) do
         slice.collect do|content_type|
           content_type_item(content_type)
         end
@@ -48,7 +54,7 @@ module Releaf::Content
     end
 
     def content_type_item(content_type)
-      url = url_for(controller: "/releaf/content/nodes", action: "new", parent_id: params[:parent_id], content_type: content_type.name)
+      url = url_for(controller: controller.controller_path, action: "new", parent_id: params[:parent_id], content_type: content_type.name)
       tag(:li) do
         link_to(I18n.t(content_type.name.underscore, scope: 'admin.content_types'), url)
       end
@@ -62,7 +68,7 @@ module Releaf::Content
     end
 
     def section_header_text
-      t("Add new node")
+      t("Create new resource")
     end
   end
 end

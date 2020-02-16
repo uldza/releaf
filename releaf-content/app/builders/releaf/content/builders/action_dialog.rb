@@ -14,7 +14,7 @@ module Releaf::Content::Builders
     end
 
     def root_level
-      tag(:ul, class: "block", "data-level" => 0) do
+      tag(:ul, "data-level" => 0) do
         tag(:li, class: "root") do
           [tree_root_resource, super]
         end
@@ -25,7 +25,7 @@ module Releaf::Content::Builders
       field_id = "new_parent_id_0"
       tag(:div, class: "node-cell") do
         [radio_button_tag(:new_parent_id, '', false, id: 'new_parent_id_0'),
-           tag(:label, t("Root node"), for: field_id)]
+           tag(:label, t("Root node"), class: "trigger", for: field_id)]
       end
     end
 
@@ -33,7 +33,7 @@ module Releaf::Content::Builders
       field_id = "new_parent_id_#{resource.id}"
 
       [radio_button_tag(:new_parent_id, resource.id, false, id: field_id),
-         tag(:label, tag(:span, resource.name), for: field_id)]
+         tag(:label, tag(:span, resource.name), class: "trigger", for: field_id)]
     end
 
     def section_blocks
@@ -53,8 +53,16 @@ module Releaf::Content::Builders
       super << confirm_button
     end
 
+    def confirm_button_text
+      t(action.to_s.humanize)
+    end
+
+    def confirm_button_attributes
+      {class: "primary", type: "submit", data: { type: 'ok', disable: true}}
+    end
+
     def confirm_button
-      button(t(action), "check", class: "primary", type: "submit", data: { type: 'ok', disable: true })
+      button(confirm_button_text, "check", confirm_button_attributes)
     end
   end
 end

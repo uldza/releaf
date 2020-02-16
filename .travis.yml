@@ -1,14 +1,32 @@
 language: ruby
+sudo: false
+cache:
+  directories:
+    - bundler
+    - travis_phantomjs
 
 rvm:
-  - 2.2.1
+  - 2.5.1
 
 env:
-  - RELEAF_DB=mysql RELEAF_DUMMY_DB_USERNAME=travis RELEAF_DUMMY_DB_PASSWORD="" RELEAF_DUMMY_DB_NAME=myapp
-  - RELEAF_DB=postgresql RELEAF_DUMMY_DB_USERNAME=postgres RELEAF_DUMMY_DB_PASSWORD="" RELEAF_DUMMY_DB_NAME=myapp
+  - DB=mysql
+  - DB=pg
+
+matrix:
+  allow_failures:
+    - env: DB=pg
+
+before_install:
+  - "export PATH=$PWD/travis_phantomjs/phantomjs-2.1.1-linux-x86_64/bin:$PATH"
+  - if [ $(phantomjs --version) != '2.1.1' ]; then
+      rm -rf $PWD/travis_phantomjs; mkdir -p $PWD/travis_phantomjs;
+      wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 -O $PWD/travis_phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2;
+      tar -xvf $PWD/travis_phantomjs/phantomjs-2.1.1-linux-x86_64.tar.bz2 -C $PWD/travis_phantomjs;
+    fi
+  - 'cp "config.yml.${DB}.travis" "config.yml"'
 
 before_script:
-  - 'if [ "$RELEAF_DB" = "postgresql" ]; then psql -c "create database myapp;" -U postgres; fi'
+  - 'if [ "$DB" = "pg" ]; then psql -c "create database myapp;" -U postgres; fi'
   - bundle exec rake dummy:setup
 
-script: xvfb-run rake ci
+script: xvfb-run bundle exec rake ci

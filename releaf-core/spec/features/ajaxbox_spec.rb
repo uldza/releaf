@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'rails_helper'
 feature "Ajaxbox", js: true do
   background do
     auth_as_user
@@ -8,10 +8,9 @@ feature "Ajaxbox", js: true do
     user = Releaf::Permissions::User.last
     visit releaf_permissions_users_path
     click_link user.name
-    expect(page).to have_header(text: user.to_text)
+    expect(page).to have_header(text: user.releaf_title)
 
-    open_toolbox "Delete"
-    sleep 1 # wait for form to be initialized
+    open_toolbox_dialog "Delete"
     within_dialog{ click_link "No" }
     expect(page).to_not have_css(".dialog")
     expect(current_path).to eq(edit_releaf_permissions_user_path(user))
@@ -19,9 +18,9 @@ feature "Ajaxbox", js: true do
 
   scenario "Close ajaxbox with footer 'cancel' button (wrapped within form) without reloading page" do
     node = create(:home_page_node, name: "MyNode")
-    node_path = edit_releaf_content_node_path(node)
+    node_path = edit_admin_node_path(node)
     visit node_path
-    open_toolbox "Move"
+    open_toolbox_dialog "Move"
     within_dialog{ click_link "Cancel" }
     expect(page).to_not have_css(".dialog")
     expect(current_path).to eq(node_path)
@@ -29,10 +28,9 @@ feature "Ajaxbox", js: true do
 
   scenario "Close ajaxbox with header 'close' button without reloading page" do
     node = create(:home_page_node, name: "MyNode")
-    node_path = edit_releaf_content_node_path(node)
+    node_path = edit_admin_node_path(node)
     visit node_path
-    open_toolbox "Add child"
-    sleep 1 # wait for form to be initialized
+    open_toolbox_dialog "Add child"
     within_dialog{ find("button.close").click }
     expect(page).to_not have_css(".dialog")
     expect(current_path).to eq(node_path)
@@ -40,10 +38,9 @@ feature "Ajaxbox", js: true do
 
   scenario "Drag ajaxbox within header" do
     node = create(:home_page_node, name: "MyNode")
-    node_path = edit_releaf_content_node_path(node)
+    node_path = edit_admin_node_path(node)
     visit node_path
-    open_toolbox "Add child"
-    sleep 1 # wait for form to be initialized
+    open_toolbox_dialog "Add child"
     header = find(".dialog > header")
     target = find("body > header a.home")
 
@@ -69,10 +66,9 @@ feature "Ajaxbox", js: true do
 
   scenario "Ajaxbox without modality (background is clickable)" do
     node = create(:home_page_node, name: "MyNode")
-    node_path = edit_releaf_content_node_path(node)
+    node_path = edit_admin_node_path(node)
     visit node_path
-    open_toolbox "Add child"
-    sleep 1 # wait for form to be initialized
+    open_toolbox_dialog "Add child"
 
     expect(page).to have_css(".mfp-bg")
     page.driver.click(10, 10)
@@ -83,10 +79,8 @@ feature "Ajaxbox", js: true do
     user = Releaf::Permissions::User.last
     visit releaf_permissions_users_path
     click_link user.name
-    expect(page).to have_header(text: user.to_text)
-
-    open_toolbox "Delete"
-    sleep 1 # wait for form to be initialized
+    expect(page).to have_header(text: user.releaf_title)
+    open_toolbox_dialog "Delete"
 
     expect(page).to have_css(".mfp-bg")
     page.driver.click(10, 10)
@@ -105,10 +99,13 @@ feature "Ajaxbox", js: true do
     expect(page).to_not have_css(".mfp-bg")
 
     find(".field[data-name='cover_image'] .value-preview img").click
+
     image_url = find(".field[data-name='cover_image'] .value-preview a.ajaxbox")["href"] + "&ajax=1"
-    expect(page).to have_css(".ajaxbox-inner img[src='#{image_url}']")
+    ajaxbox_image_selector = '.ajaxbox-inner img.mfp-img'
+    expect(find(ajaxbox_image_selector)['src']).to eq image_url
+
     find(".ajaxbox-inner button.close").click
-    expect(page).to_not have_css(".mfp-bg")
-    expect(page).to_not have_css(".ajaxbox-inner > img[src='#{image_url}']")
+    expect(page).to have_no_css(".mfp-bg")
+    expect(page).to have_no_css(ajaxbox_image_selector)
   end
 end

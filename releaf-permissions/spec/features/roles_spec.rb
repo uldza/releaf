@@ -1,15 +1,25 @@
-require 'spec_helper'
+require 'rails_helper'
 feature "Roles management", js: true do
   background do
     auth_as_user
     @role = Releaf::Permissions::Role.first
   end
 
+  scenario "Role search", focus: true do
+    create(:admin_role, name: 'super role')
+    visit releaf_permissions_roles_path
+    expect(page).to have_content @role.name
+    expect(page).to have_content 'super role'
+    search "super"
+    expect(page).to have_no_content @role.name
+    expect(page).to have_content 'super role'
+  end
+
   scenario "User creates a new role" do
     visit releaf_permissions_roles_path
     create_resource do
       fill_in("Name", with: "second role")
-      select('Releaf/content/nodes', from: 'Default controller')
+      select('Admin/nodes', from: 'Default controller')
     end
     visit releaf_permissions_roles_path
     expect(page).to have_content "second role"
@@ -43,11 +53,11 @@ feature "Roles management", js: true do
       uncheck('Admin/books')
     end
 
-    Releaf.available_controllers.each do |controller|
+    Releaf.application.config.available_controllers.each do |controller|
       if controller == "admin/books"
-        expect(page).to have_unchecked_field(I18n.t(controller, scope: 'admin.controllers'))
+        expect(page).to have_unchecked_field(I18n.t(controller))
       else
-        expect(page).to have_checked_field(I18n.t(controller, scope: 'admin.controllers'))
+        expect(page).to have_checked_field(I18n.t(controller))
       end
     end
   end

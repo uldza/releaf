@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'rails_helper'
 
 describe Releaf::I18nDatabase::TranslationsController do
   def file_attachment
@@ -14,19 +14,15 @@ describe Releaf::I18nDatabase::TranslationsController do
   end
 
   before build_translations: true do
-    @t1 = FactoryGirl.create(:translation, key: 'test.key1')
-    @t2 = FactoryGirl.create(:translation, key: 'great.stuff')
-    @t3 = FactoryGirl.create(:translation, key: 'geek.stuff')
-
-    @t1_en = FactoryGirl.create(:translation_data, lang: 'en', localization: 'testa atslēga', translation_id: @t1.id)
-
-    @t2_en = FactoryGirl.create(:translation_data, lang: 'en', localization: 'awesome stuff', translation_id: @t2.id)
-    @t2_lv = FactoryGirl.create(:translation_data, lang: 'lv', localization: 'lieliska manta', translation_id: @t2.id)
-
-    @t3_en = FactoryGirl.create(:translation_data, lang: 'en', localization: 'geek stuff', translation_id: @t3.id)
-    @t3_lv = FactoryGirl.create(:translation_data, lang: 'lv', localization: 'nūģu lieta', translation_id: @t3.id)
+    @t1 = Releaf::I18nDatabase::I18nEntry.create(key: 'test.key1')
+    @t2 = Releaf::I18nDatabase::I18nEntry.create(key: 'great.stuff')
+    @t3 = Releaf::I18nDatabase::I18nEntry.create(key: 'geek.stuff')
+    @t1.i18n_entry_translation.create(locale: 'en', text: 'testa atslēga')
+    @t2.i18n_entry_translation.create(locale: 'en', text: 'awesome stuff')
+    @t2.i18n_entry_translation.create(locale: 'lv', text: 'lieliska manta')
+    @t3.i18n_entry_translation.create(locale: 'en', text: 'geek stuff')
+    @t3.i18n_entry_translation.create(locale: 'lv', text: 'nūģu lieta')
   end
-
 
   describe "GET #index", build_translations: true do
     context "when not searching" do
@@ -95,11 +91,11 @@ describe Releaf::I18nDatabase::TranslationsController do
 
       context "when save without import" do
         before do
-          put :update, translations: [{key: 'a.b.c', localizations: {en: 'test', lv: 'xxl'}}], search: "apple and pear"
+          put :update, translations: [{key: 'a.b.c', localizations: {en: 'test', lv: 'xxl'}}]
         end
 
-        it "redirects to edit view keeping current search params" do
-          expect(subject).to redirect_to(action: :edit, search: "apple and pear")
+        it "redirects to edit view" do
+          expect(subject).to redirect_to(action: :edit)
         end
 
         it "flash success notification" do
@@ -124,13 +120,8 @@ describe Releaf::I18nDatabase::TranslationsController do
   describe "#import" do
     context "when file uploaded" do
       before do
-        file = fixture_file_upload(File.expand_path('../../fixtures/translations_import.xlsx', __dir__), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        class << file
-          # The reader method is present in a real invocation,
-          # but missing from the fixture object for some reason (Rails 3.1.1)
-          attr_reader :tempfile
-        end
-
+        file = fixture_file_upload(File.expand_path('../../fixtures/translations_import.xlsx', __dir__),
+                                   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         post :import, import_file: file
       end
 

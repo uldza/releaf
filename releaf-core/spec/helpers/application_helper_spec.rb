@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'rails_helper'
 
 describe Releaf::ApplicationHelper do
   describe "#releaf_table" do
@@ -32,7 +32,7 @@ describe Releaf::ApplicationHelper do
   describe "#i18n_options_for_select" do
     Color = Struct.new(:id, :to_s)
     let(:helper) do
-      helper = instance_double(Releaf::BaseController)
+      helper = instance_double(Releaf::ActionController)
       helper.extend Releaf::ApplicationHelper
       helper.extend ActionView::Helpers
 
@@ -40,12 +40,10 @@ describe Releaf::ApplicationHelper do
     end
 
     before do
-
-      translation = FactoryGirl.create(:translation, :key => "admin.global.colors-red")
-      FactoryGirl.create(:translation_data, :lang => "en", :localization => "Color red", :translation => translation)
-      I18n.backend.reload_cache
-
-      allow(helper).to receive(:controller_scope_name).and_return("admin.global")
+      translation = Releaf::I18nDatabase::I18nEntry.create(key: "admin.xx.colors-red")
+      translation.i18n_entry_translation.create(locale: "en", text: "Color red")
+      Releaf::I18nDatabase::Backend.reset_cache
+      allow(helper).to receive(:controller_scope_name).and_return("admin.xx")
     end
 
     context "when array of string" do

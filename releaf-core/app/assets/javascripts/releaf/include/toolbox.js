@@ -32,8 +32,6 @@ jQuery(function()
             return;
         }
 
-        target.find('.toolbox > .trigger').prop("disabled", false);
-
         toolboxes.bind('toolboxopen', function()
         {
             var toolbox   = jQuery(this);
@@ -131,26 +129,22 @@ jQuery(function()
 
             if (openToRight)
             {
-                menu.css
-                ({
+                menu.css({
                     left:  triggerCenterX - 23,
-                    top :  triggerOffset.top  + trigger.outerHeight(),
+                    top :  triggerOffset.top  + trigger.outerHeight()
                 });
-                beak.css(
-                {
-                    left : 16
+                beak.css({
+                    left : 18
                 });
             }
             else
             {
-                menu.css
-                ({
+                menu.css({
                     left:  triggerCenterX - menuWidth + 20,
-                    top :  triggerOffset.top  + trigger.outerHeight(),
+                    top :  triggerOffset.top  + trigger.outerHeight()
                 });
-                beak.css(
-                {
-                    left : menuWidth - 27,
+                beak.css({
+                    left : menuWidth - 24
                 });
             }
 
@@ -197,6 +191,8 @@ jQuery(function()
 
             var items_container = toolbox.find('.toolbox-items ul');
             items_container.data('toolbox', toolbox);
+
+            toolbox.addClass('initialized');
         });
 
     });

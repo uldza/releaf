@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'rails_helper'
 feature "Users", js: true do
   let!(:user){ create(:user, email: "admin@example.com") }
   let!(:simple_user){ create(:content_user, email: "simple@example.com") }
@@ -32,7 +32,7 @@ feature "Users", js: true do
       expect(page).to have_content 'john@example.com'
 
       visit (releaf_permissions_users_path)
-      open_toolbox("Delete", Releaf::Permissions::User.last)
+      open_toolbox_dialog("Delete", Releaf::Permissions::User.last)
       click_button 'Yes'
       expect(page).not_to have_content 'john@example.com'
     end
@@ -57,7 +57,7 @@ feature "Users", js: true do
 
     scenario "user page content" do
       expect(page).to have_css('body > header form.sign-out button')
-      expect(page).to have_content 'Releaf/content'
+      expect(page).to have_content 'Admin/nodes'
       expect(page).to have_content 'Permissions'
       expect(page).to have_content 'Releaf/i18n database/translations'
       # admin/users index view
@@ -87,7 +87,7 @@ feature "Users", js: true do
 
     scenario "user page content" do
       expect(page).to have_css('body > header form.sign-out button')
-      expect(page).to have_content 'Releaf/content'
+      expect(page).to have_content 'Admin/nodes'
     end
 
     scenario "translations module access denied" do

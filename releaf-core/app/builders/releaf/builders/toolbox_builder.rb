@@ -18,11 +18,10 @@ class Releaf::Builders::ToolboxBuilder
   end
 
   def destroy_confirmation_link
-    button(t('Delete', scope: 'admin.global'), "trash-o lg", class: %w(ajaxbox danger),
-           href: destroy_confirmation_url, data: {modal: true})
+    button(t("Delete"), nil, class: %w(ajaxbox danger), href: destroy_confirmation_url, data: {modal: true})
   end
 
   def destroy_confirmation_url
-     url_for(action: :confirm_destroy, id: resource.id, index_url: index_url)
+     url_for(action: :confirm_destroy, id: resource.id, index_path: index_path)
   end
 end

@@ -1,44 +1,19 @@
 class Releaf::Builders::EditBuilder
-  include Releaf::Builders::View
-  include Releaf::Builders::Resource
-  include Releaf::Builders::Toolbox
+  include Releaf::Builders::ResourceView
 
   attr_accessor :form
 
-  def section
-    tag(:section, section_attributes) do
-      form_for(resource, form_options) do |form|
-        self.form = form
-        safe_join do
-          [index_url_preserver] + section_blocks
-        end
+  def section_content
+    form_for(resource, form_options) do |form|
+      self.form = form
+      safe_join do
+        [index_path_preserver] + section_blocks
       end
     end
   end
 
-  def index_url_preserver
-    hidden_field_tag 'index_url', params[:index_url] if params[:index_url].present?
-  end
-
-  def section_header_text
-    resource.new_record? ? t('Create new resource', scope: 'admin.global') : resource_to_text(resource)
-  end
-
-  def section_header_extras
-    return unless feature_available? :toolbox
-    tag(:div, class: "extras toolbox-wrap") do
-      toolbox(resource, index_url: index_url)
-    end
-  end
-
-  def section_body
-    tag(:div, section_body_attributes) do
-      section_body_blocks
-    end
-  end
-
-  def section_body_attributes
-    {class: ["body"]}
+  def index_path_preserver
+    hidden_field_tag "index_path", params[:index_path] if params[:index_path].present?
   end
 
   def section_body_blocks
@@ -49,47 +24,88 @@ class Releaf::Builders::EditBuilder
     form.releaf_fields(form.field_names.to_a)
   end
 
-  def form_options
-    controller.form_options(action_name, resource, :resource)
+  def form_url
+    url_for(action: form_action, id: resource.id)
   end
 
-  #-#TODO: improve style/html
+  def form_action
+    resource.new_record? ? 'create' : 'update'
+  end
+
+  def resource_name
+    :resource
+  end
+
+  def form_builder_class
+    builder_class(:form)
+  end
+
+  def form_options
+    {
+      builder: form_builder_class,
+      as: resource_name,
+      url: form_url,
+      html: form_attributes
+    }
+  end
+
+  def form_identifier
+    action = !resource.respond_to?(:persisted?) || resource.persisted? ? :edit : :new
+    "#{action}-#{resource_name}"
+  end
+
+  def form_classes
+    classes = [ form_identifier ]
+    classes << "has-error" if resource.errors.any?
+    classes
+  end
+
+  def form_attributes
+    {
+      multipart: true,
+      id: form_identifier,
+      class: form_classes,
+      data: {
+        "remote" => true,
+        "remote-validation" => true,
+        "type" => :json,
+      },
+      novalidate: ""
+    }
+  end
+
   def error_notices
-    return unless form.object.errors.any?
-    tag(:div, id: "error_explanation") do
+    return unless resource.errors.any?
+    tag(:div, class: "form-error-box") do
       error_notices_header <<
       tag(:ul) do
-        form.object.errors.full_messages.collect do|message|
-          tag(:li, message)
+        resource.errors.full_messages.collect do|message|
+          tag(:li, message, class: "error")
         end
       end
     end
   end
 
   def error_notices_header
-    tag(:strong, "#{form.object.errors.count} validation #{"error".pluralize(form.object.errors.count)} occured:")
+    tag(:strong, "#{resource.errors.count} validation #{"error".pluralize(resource.errors.count)} occured:")
   end
 
   def footer_primary_tools
-    [save_button]
+    tools = []
+    tools << save_and_create_another_button if create_another_available?
+    tools << save_button
+    tools
+  end
+
+  def create_another_available?
+    resource.present? && resource.new_record? && feature_available?(:create_another)
+  end
+
+  def save_and_create_another_button
+    button(t("Save and create another"), "plus", name: "after_save", value: "create_another", class: "secondary", data: { type: 'ok', disable: true }, type: "submit")
   end
 
   def save_button
-    button(t('Save', scope: "admin.global"), "check", class: "primary", data: { type: 'ok', disable: true }, type: "submit")
+    button(t("Save"), "check", class: "primary", data: { type: 'ok', disable: true }, type: "submit")
   end
-
-  def footer_secondary_tools
-    list = []
-    list << back_to_list_button if back_to_list?
-    list
-  end
-
-  def back_to_list?
-    feature_available?(:index) && params[:index_url].present?
-  end
-
-  def back_to_list_button
-    button(t('Back to list', scope: "admin.global"), "caret-left", class: "secondary", href: index_url)
-  end
-
 end

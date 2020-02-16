@@ -8,8 +8,8 @@ module Releaf::Content::Nodes
     end
 
     def tree_resource_toolbox(resource)
-      tag(:div, class: "toolbox-cell") do
-        toolbox(resource, index_url: index_url)
+      tag(:div, class: "only-icon toolbox-cell") do
+        toolbox(resource[:node], index_path: index_path)
       end
     end
 
@@ -18,7 +18,7 @@ module Releaf::Content::Nodes
     end
 
     def resource_creation_button
-      button(t('Create new resource', scope: 'admin.global'), "plus", class: %w(primary ajaxbox), href: url_for(controller: controller.controller_name, action: "content_type_dialog"))
+      button(t("Create new resource"), "plus", class: %w(primary ajaxbox), href: url_for(controller: controller.controller_name, action: "content_type_dialog"))
     end
   end
 end

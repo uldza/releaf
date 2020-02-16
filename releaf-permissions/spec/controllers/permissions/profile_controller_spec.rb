@@ -1,4 +1,4 @@
-require 'spec_helper'
+require 'rails_helper'
 
 describe Releaf::Permissions::ProfileController do
   let(:another_role){ FactoryGirl.create(:content_role) }
@@ -26,35 +26,13 @@ describe Releaf::Permissions::ProfileController do
           "email" => "new.email@example.com",
           "locale" => "lv"
         }
+
+        # This is needed in order to get same instance as we expect.
+        # Otherwise we'll get same record, but different instance and test will fail
+        allow( user ).to receive(:becomes).with(Releaf::Permissions::User).and_return(user)
+
         expect(user).to receive(:update_attributes).with(attributes)
         patch :update, {resource: attributes}
-      end
-    end
-  end
-
-  describe "PUT settings" do
-    context 'when params[:settings] is not Hash' do
-      it "has a 422 status code" do
-        put :settings
-        expect(response.status).to eq(422)
-      end
-    end
-
-    context 'when params[:settings] is Hash' do
-      it "has a 200 status code" do
-        put :settings, {settings: {dummy: 'maybe'}}
-        expect(response.status).to eq(200)
-      end
-
-      it "saves given data within current user settings" do
-        put :settings, {settings: {dummy: 'maybe'}}
-        expect(user.settings.dummy).to eq('maybe')
-      end
-
-      it "casts bolean values from strings to booleans" do
-        put :settings, {settings: {be_true: 'true', be_false: 'false'}}
-        expect(user.settings.be_true).to be true
-        expect(user.settings.be_false).to be false
       end
     end
   end

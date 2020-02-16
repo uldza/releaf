@@ -22,7 +22,7 @@ module ActiveRecord
 
         def acts_as_node_params
           if acts_as_node_configuration[:params].nil?
-            Releaf::Core::ResourceParams.new(self).values << :id
+            Releaf::ResourceParams.new(self).values << :id
           else
             acts_as_node_configuration[:params] << :id
           end
@@ -33,7 +33,7 @@ module ActiveRecord
         # @return [Array] list of fields to display
         def acts_as_node_fields
           if acts_as_node_configuration[:fields].nil?
-            Releaf::Core::ResourceFields.new(self).values
+            Releaf::ResourceFields.new(self).values
           else
             acts_as_node_configuration[:fields]
           end
@@ -42,12 +42,6 @@ module ActiveRecord
 
       # All the methods available to a record that has had <tt>acts_as_node</tt> specified.
       module InstanceMethods
-
-        # Return object corresponding node object
-        # @return [::Node]
-        def node
-          ::Node.find_by(content_type: self.class.name, content_id: id)
-        end
 
       end
     end

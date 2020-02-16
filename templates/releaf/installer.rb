@@ -1,41 +1,18 @@
 require 'rbconfig'
+require 'yaml'
 
-def ask_wizard(question, default_value)
-  value = ask (@current_recipe || "prompt").rjust(10) + "  #{question}"
+config_file = File.expand_path('../../../config.yml', __FILE__)
+config = YAML.load_file(config_file)
 
-  if value.blank?
-    value = default_value
-  end
 
-  return value
+gsub_file "config/database.yml", /database: dummy_/, "database: #{config["database"]["name"]}_"
+gsub_file "config/database.yml", /username: .*/, "username: #{config["database"]["username"]}"
+gsub_file "config/database.yml", /default: &default/, "default: &default\n  username: #{config["database"]["username"]}"
+if config["database"]["password"].present?
+  gsub_file "config/database.yml", /password:/, "password: #{config["database"]["password"]}"
 end
-
-# collect dummy database config
-if ENV['RELEAF_DUMMY_DB_USERNAME'].nil?
-  db_username = ask_wizard("Database username? (leave blank to use the 'root')", 'root')
-else
-  db_username = ENV['RELEAF_DUMMY_DB_USERNAME']
-end
-
-if ENV['RELEAF_DUMMY_DB_PASSWORD'].nil?
-  db_password = ask_wizard("Database password for '#{db_username}?'", '')
-else
-  db_password = ENV['RELEAF_DUMMY_DB_PASSWORD']
-end
-
-if ENV['RELEAF_DUMMY_DB_NAME'].nil?
-  @current_recipe = "database"
-  db_name = ask_wizard("MySQL database name (leave blank to use 'releaf_dummy')?", 'releaf_dummy')
-else
-  db_name = ENV['RELEAF_DUMMY_DB_NAME']
-end
-
-gsub_file "config/database.yml", /username: .*/, "username: #{db_username}"
-gsub_file "config/database.yml", /database: dummy_/, "database: #{db_name}_"
-gsub_file "config/database.yml", /password:/, "password: #{db_password}" if db_password.present?
 
 gsub_file 'config/boot.rb', "'../../Gemfile'", "'../../../../Gemfile'"
-append_file 'config/initializers/assets.rb', "Rails.application.config.assets.precompile += %w( releaf/*.css releaf/*.js )"
 
 files_to_remove = %w[
   public/index.html
@@ -61,6 +38,7 @@ application "config.i18n.enforce_available_locales = true"
 
 # in "test" env "true" cause to fail on install generators, revert to normall
 gsub_file 'config/environments/test.rb', 'config.cache_classes = false', 'config.cache_classes = true'
+gsub_file 'config/environments/test.rb', 'config.action_controller.allow_forgery_protection = false', 'config.action_controller.allow_forgery_protection = true'
 rake 'db:migrate'
 rake 'db:seed'
 

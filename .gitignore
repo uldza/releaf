@@ -15,3 +15,5 @@ rdoc/
 /.rspec
 _site/
 api/
+/config.yml
+*.gem
